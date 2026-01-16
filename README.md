@@ -1,5 +1,7 @@
-# UWPWithWin32
+﻿# UWPWithWin32
 This project act as a starting project template for a UWP bundled with a full-trust win32 application.
+
+**The master branch is for Visual Studio 2026. For Visual Stdio 2022, check out the `vs2022` branch.**
 
 ## How
 1. Create a new UWP C++/WinRT project
