@@ -1,0 +1,9 @@
+namespace Server
+{
+    runtimeclass Service
+    {
+        Service();
+        Int32 Add(Int32 a, Int32 b);
+        Windows.Foundation.Collections.IVector<Object> Iterate(String path);
+    }
+}

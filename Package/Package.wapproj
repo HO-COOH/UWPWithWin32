@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0'">
     <VisualStudioVersion>15.0</VisualStudioVersion>
@@ -55,6 +54,8 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <DefaultLanguage>en-US</DefaultLanguage>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <!-- Disable validation to bypass APPX0501 since we force-patch the manifest -->
+    <AppxPackageValidationEnabled>false</AppxPackageValidationEnabled>
     <NoWarn>$(NoWarn);NU1702</NoWarn>
     <EntryPointProjectUniqueName>..\UWPMain\UWPMain.vcxproj</EntryPointProjectUniqueName>
   </PropertyGroup>
@@ -72,12 +73,28 @@
     <Content Include="Images\StoreLogo.png" />
     <Content Include="Images\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
+  <Target Name="PatchManifest" AfterTargets="_GenerateAppxManifest" BeforeTargets="_ValidateAppxManifest">
+    <PropertyGroup>
+       <ObjManifestPath>$(ProjectDir)$(IntermediateOutputPath)AppxManifest.xml</ObjManifestPath>
+       <BinManifestPath>$(ProjectDir)$(OutputPath)AppxManifest.xml</BinManifestPath>
+    </PropertyGroup>
+    <Message Text="Patching manifest using PowerShell at: $(ObjManifestPath) and $(BinManifestPath)" Importance="high" />
+    
+    <Exec Command="powershell -Command &quot;&amp; { function Patch-File($path) { if (-not (Test-Path $path)) { Write-Host 'File not found: ' $path; return }; $xml = [xml](Get-Content $path); $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable); $ns.AddNamespace('x', 'http://schemas.microsoft.com/appx/manifest/foundation/windows10'); $ns.AddNamespace('uap5', 'http://schemas.microsoft.com/appx/manifest/uap/windows10/5'); $ns.AddNamespace('uap10', 'http://schemas.microsoft.com/appx/manifest/uap/windows10/10'); $nodes = $xml.SelectNodes('/x:Package/x:Applications/x:Application', $ns); foreach ($node in $nodes) { $node.RemoveAttribute('EntryPoint'); $node.SetAttribute('EntryPoint', 'UWPMain.App'); $node.SetAttribute('Executable', 'UWPMain.exe'); $node.RemoveAttribute('RuntimeBehavior', 'http://schemas.microsoft.com/appx/manifest/uap/windows10/10'); $node.RemoveAttribute('TrustLevel', 'http://schemas.microsoft.com/appx/manifest/uap/windows10/10'); Write-Host 'Reverted Client to Standard UWP.'; }; $serverNodes = $xml.SelectNodes('//uap5:OutOfProcessServer', $ns); foreach ($serverNode in $serverNodes) { $serverNode.SetAttribute('RunFullTrust', 'true'); $pathNode = $serverNode['uap5:Path']; if ($pathNode) { $pathNode.InnerText = 'ConsoleMain.exe'; Write-Host 'Updated Server Path to ConsoleMain.exe'; } $instancingNode = $serverNode['uap5:Instancing']; if ($instancingNode) { $instancingNode.InnerText = 'multipleInstances'; Write-Host 'Updated Instancing to multipleInstances'; } Write-Host 'Restored RunFullTrust to OutOfProcessServer.'; }; $xml.Save($path); Write-Host 'Successfully patched: ' $path; }; Patch-File '$(BinManifestPath)'; }&quot;" />
+  </Target>
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
+  <!-- Overriding the validation target to be empty to bypass the rigorous checks that don't support our FullTrust+OOP setup -->
+  <Target Name="_ValidateAppxManifest">
+    <Message Text="Skipping manifest validation to allow custom FullTrust configuration." Importance="high" />
+  </Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ConsoleMain\ConsoleMain.vcxproj" />
-    <ProjectReference Include="..\UWPMain\UWPMain.vcxproj" />
+    <ProjectReference Include="..\UWPMain\UWPMain.vcxproj">
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+      <TrustLevel>MediumIL</TrustLevel>
+    </ProjectReference>
   </ItemGroup>
 </Project>

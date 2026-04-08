@@ -3,9 +3,12 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
-  IgnorableNamespaces="uap rescap desktop">
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  IgnorableNamespaces="uap uap5 uap10 rescap desktop com">
 
 	<Identity
 	  Name="2cd7569f-a8e2-4390-93e4-753b52d8432b"
@@ -19,8 +22,8 @@
 	</Properties>
 
 	<Dependencies>
-		<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
-		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+		<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.19041.0" MaxVersionTested="10.0.19041.0" />
+		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.19041.0" />
 	</Dependencies>
 
 	<Resources>
@@ -29,8 +32,10 @@
 
 	<Applications>
 		<Application Id="App"
-		  Executable="$targetnametoken$.exe"
-		  EntryPoint="$targetentrypoint$">
+		  Executable="UWPMain.exe"
+		  EntryPoint="Windows.FullTrustApplication"
+		  uap10:TrustLevel="mediumIL"
+		  uap10:RuntimeBehavior="packagedClassicApp">
 			<uap:VisualElements
 			  DisplayName="Package"
 			  Description="Package"
@@ -42,10 +47,18 @@
 			</uap:VisualElements>
 
 			<Extensions>
-				<desktop:Extension Category="windows.fullTrustProcess" Executable="ConsoleMain/ConsoleMain.exe">
-					
-				</desktop:Extension>
+				<com:Extension Category="windows.comServer">
+					<com:ComServer>
+						<com:ExeServer
+							Arguments="-srv"
+							Executable="ConsoleMain.exe"
+							LaunchAndActivationPermission="O:SYG:SYD:(A;;11;;;WD)(A;;11;;;RC)(A;;11;;;AC)(A;;11;;;AN)(A;;11;;;S-1-15-2-2713733867-3965126987-1241917971-1200521022-771755731-414354104-1137487667)S:P(ML;;NX;;;S-1-16-0)">
+							<com:Class Id="853730F3-09AC-47D6-86D2-C2BACDBB948E" />
+						</com:ExeServer>
+					</com:ComServer>
+				</com:Extension>
 			</Extensions>
+
 		</Application>
 	</Applications>
 
