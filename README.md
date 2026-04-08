@@ -10,13 +10,13 @@ For UWP with Fulltrust win32, checkout `matser` branch.
 4. Select the packaging project as the startup project, disable deployment of the UWP project (in configuration manager)
 5. Right click the packaging project -> properties -> Debugging, select native debugging
 6. Add a new C++ console application project
-7. **Add reference to the console application project in the packaging project**
-8. Modify the `Package.appxmanifest` file in the packaging project (see code)
-9. Ensure the target platform version of the UWP project is the same as the packing project (I used 22621 in this project)
-10. **Add a reference to the corresponding `Windows Desktop Extensions` in the UWP project** (so you have `Windows.ApplicationModel.FullTrustProcessLauncher` available)
+7. Modify the `Package.appxmanifest` file in the packaging project (see code)
+8. Ensure the target platform version of the UWP project is the same as the packing project (I used 22621 in this project)
+9. **Add a reference to the corresponding `Windows Desktop Extensions` in the UWP project** (so you have `Windows.ApplicationModel.FullTrustProcessLauncher` available)
 --The above coming from UWP with Win32. Next are the OOP/winrt part--
-11. Create `Service.idl` (just like your UWP/WinUI3 idl). But you now need to create the implementation file by yourself. See `Service.h` and `Service.cpp`
-12. Create a `ServiceFactory.h/.cpp`, which are basically boilerplate for creating the `Service` class.
+10. Create `Service.idl` (just like your UWP/WinUI3 idl). But you now need to create the implementation file by yourself. See `Service.h` and `Service.cpp`
+11. Create a `ServiceFactory.h/.cpp`, which are basically boilerplate for creating the `Service` class.
+12. **In your UWP project, add reference to the `winmd` file that's generated in the console application project**
 13. Generate a GUID that will be used in both `Package.appxmainfest`, `ConsoleMain/main.cpp` and your UWP app where you need to create the `Service` object.
 14. In `Package.appxmanifest`, add a `com:Server` extension to your UWP Application entry. (See the file)
 15. Now the packaging and the server parts are done. Now in your UWP app, whenever you need to create the `Service` object, you do it like so:
